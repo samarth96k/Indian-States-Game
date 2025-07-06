@@ -7,4 +7,10 @@ Mapped coordinates with csv file
 1. Optimise coordinates
 2. More maps and countries to be included
 
+# Link to the site
+https://samarth96k.github.io/Indian-States-Game/
+
+# Clone
+You may clone repository and update this project.
+
 Developed by Samarth 
