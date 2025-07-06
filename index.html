@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian States Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .state-label {
+            position: absolute;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            z-index: 10;
+            border: 1px solid rgba(255,255,255,0.5);
+            transform: translate(-50%, -50%);
+        }
+
+        .state-label.guessed {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .state-label.unguessed {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .state-label:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .input-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .input-section input {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            width: 250px;
+            margin-right: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-section input:focus {
+            border-color: #4ECDC4;
+        }
+
+        .input-section button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .input-section button:hover {
+            transform: scale(1.05);
+        }
+
+        .controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .show-all {
+            background: #ff4757;
+            color: white;
+        }
+
+        .restart {
+            background: #2ed573;
+            color: white;
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .info-note {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .debug-info {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #004085;
+        }
+
+        @media (max-width: 768px) {
+            .input-section input {
+                width: 200px;
+                margin-bottom: 10px;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .map-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1> Indian States Game </h1>
+        
+
+
+        <div class="debug-info" id="debugInfo" style="display: none;">
+            <strong>Debug Info:</strong> <span id="debugText"></span>
+        </div>
+        
+        <div class="game-info">
+            <div>Player: <span id="playerName">Guest</span></div>
+            <div>Progress: <span id="progress">0/36</span></div>
+            <div>Score: <span id="score">0</span></div>
+        </div>
+
+        <div class="map-container" id="mapContainer">
+            <img id="mapImage" class="map-image" src="indian_map.gif" alt="Indian Map" style="display: none;">
+            <div class="loading" id="loadingMessage">Loading map and coordinates...</div>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="stateInput" placeholder="Enter state name..." autocomplete="off" disabled>
+            <button onclick="guessState()" id="guessButton" disabled>Guess</button>
+        </div>
+
+        <div class="controls">
+            <button class="show-all" onclick="showAllStates()" id="showAllButton" disabled>Show All States</button>
+            <button class="restart" onclick="restartGame()" id="restartButton" disabled>Restart Game</button>
+            <button onclick="toggleDebug()" id="debugButton">Toggle Debug</button>
+        </div>
+
+        <div id="message" class="message" style="display: none;"></div>
+        
+        <div class="footer">
+            <p>Made by Samarth Khandelwal | Type your answer and press Enter or click Guess</p>
+            <p>💡 Tip: You can click "Show All States" to see the complete map</p>
+        </div>
+    </div>
+
+    <script>
+        let statesData = [];
+        let guessedStates = [];
+        let gameStarted = false;
+        let playerName = "Guest";
+        let mapImageLoaded = false;
+        let csvDataLoaded = false;
+        let mapDimensions = { width: 0, height: 0 };
+        let debugMode = false;
+
+        // Load CSV data
+        async function loadCSVData() {
+            try {
+                const response = await fetch('states_coordinates.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                parseCSV(csvText);
+                csvDataLoaded = true;
+                checkIfReadyToStart();
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+                showMessage("Error loading states data. Please make sure 'states_coordinates.csv' is in the same folder.", "error");
+                // Fallback to default data
+                loadDefaultData();
+            }
+        }
+
+        // Parse CSV data
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            
+            console.log('CSV Headers:', headers);
+            
+            // Find the column indices (case insensitive)
+            const stateIndex = headers.findIndex(h => h.toLowerCase().includes('state'));
+            const xIndex = headers.findIndex(h => h.toLowerCase() === 'x');
+            const yIndex = headers.findIndex(h => h.toLowerCase() === 'y');
+            
+            console.log('Column indices:', { stateIndex, xIndex, yIndex });
+            
+            if (stateIndex === -1 || xIndex === -1 || yIndex === -1) {
+                console.error('CSV columns not found. Available headers:', headers);
+                throw new Error('CSV format not recognized. Expected columns: STATES, x, y');
+            }
+            
+            statesData = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line) {
+                    const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                    if (values.length >= 3) {
+                        const stateName = values[stateIndex];
+                        const x = parseFloat(values[xIndex]);
+                        const y = parseFloat(values[yIndex]);
+                        
+                        if (stateName && !isNaN(x) && !isNaN(y)) {
+                            statesData.push({
+                                name: stateName.trim(),
+                                x: x,
+                                y: y
+                            });
+                        }
+                    }
+                }
+            }
+            
+            console.log(`Loaded ${statesData.length} states from CSV:`, statesData);
+        }
+
+        // Fallback data in case CSV fails to load
+        function loadDefaultData() {
+            statesData = [
+                { name: "Andhra Pradesh", x: 320, y: 300 },
+                { name: "Arunachal Pradesh", x: 450, y: 100 },
+                { name: "Assam", x: 430, y: 150 },
+                { name: "Bihar", x: 350, y: 180 },
+                { name: "Chhattisgarh", x: 320, y: 220 },
+                { name: "Goa", x: 220, y: 280 },
+                { name: "Gujarat", x: 170, y: 200 },
+                { name: "Haryana", x: 220, y: 120 },
+                { name: "Himachal Pradesh", x: 220, y: 90 },
+                { name: "Jharkhand", x: 350, y: 200 },
+                { name: "Karnataka", x: 270, y: 280 },
+                { name: "Kerala", x: 270, y: 340 },
+                { name: "Madhya Pradesh", x: 270, y: 200 },
+                { name: "Maharashtra", x: 270, y: 240 },
+                { name: "Manipur", x: 450, y: 170 },
+                { name: "Meghalaya", x: 430, y: 160 },
+                { name: "Mizoram", x: 450, y: 190 },
+                { name: "Nagaland", x: 450, y: 150 },
+                { name: "Odisha", x: 350, y: 240 },
+                { name: "Punjab", x: 200, y: 100 },
+                { name: "Rajasthan", x: 200, y: 160 },
+                { name: "Sikkim", x: 380, y: 130 },
+                { name: "Tamil Nadu", x: 300, y: 320 },
+                { name: "Telangana", x: 300, y: 260 },
+                { name: "Tripura", x: 450, y: 180 },
+                { name: "Uttar Pradesh", x: 300, y: 160 },
+                { name: "Uttarakhand", x: 250, y: 110 },
+                { name: "West Bengal", x: 380, y: 200 },
+                { name: "Andaman And Nicobar Islands", x: 450, y: 400 },
+                { name: "Chandigarh", x: 210, y: 110 },
+                { name: "Dadra And Nagar Haveli And Daman And Diu", x: 190, y: 220 },
+                { name: "Delhi", x: 240, y: 130 },
+                { name: "Jammu And Kashmir", x: 200, y: 60 },
+                { name: "Ladakh", x: 250, y: 40 },
+                { name: "Lakshadweep", x: 170, y: 320 },
+                { name: "Puducherry", x: 310, y: 310 }
+            ];
+            csvDataLoaded = true;
+            checkIfReadyToStart();
+        }
+
+        // Load map image
+        function loadMapImage() {
+            const mapImage = document.getElementById('mapImage');
+            mapImage.onload = function() {
+                mapImageLoaded = true;
+                mapImage.style.display = 'block';
+                document.getElementById('loadingMessage').style.display = 'none';
+                
+                // Get the actual displayed dimensions of the image
+                const rect = mapImage.getBoundingClientRect();
+                mapDimensions.width = rect.width;
+                mapDimensions.height = rect.height;
+                
+                console.log('Map dimensions:', mapDimensions);
+                checkIfReadyToStart();
+            };
+            mapImage.onerror = function() {
+                console.error('Error loading map image');
+                showMessage("Error loading map image. Please make sure 'indian_map.gif' is in the same folder.", "error");
+                // Show a placeholder but continue
+                const mapContainer = document.getElementById('mapContainer');
+                mapContainer.innerHTML = '<div style="background: #e9ecef; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #666; font-size: 18px; flex-direction: column;"><div>Map Image Not Found</div><small>Place indian_map.gif in the same folder</small></div>';
+                mapImageLoaded = true;
+                mapDimensions.width = 600;
+                mapDimensions.height = 400;
+                checkIfReadyToStart();
+            };
+            mapImage.src = 'indian_map.gif';
+        }
+
+        // Check if ready to start game
+        function checkIfReadyToStart() {
+            if (mapImageLoaded && csvDataLoaded) {
+                document.getElementById('loadingMessage').style.display = 'none';
+                enableGame();
+            }
+        }
+
+        // Enable game controls
+        function enableGame() {
+            document.getElementById('stateInput').disabled = false;
+            document.getElementById('guessButton').disabled = false;
+            document.getElementById('showAllButton').disabled = false;
+            document.getElementById('restartButton').disabled = false;
+            
+            initGame();
+        }
+
+        // Initialize game
+        function initGame() {
+            setTimeout(() => {
+                const name = prompt("Welcome to Indian States Game! Enter your name:");
+                if (name && name.trim()) {
+                    playerName = name.trim();
+                    document.getElementById('playerName').textContent = playerName;
+                } else {
+                    playerName = "Guest";
+                    document.getElementById('playerName').textContent = playerName;
+                }
+                
+                gameStarted = true;
+                updateProgress();
+                
+                // Add enter key support
+                const inputElement = document.getElementById('stateInput');
+                inputElement.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        guessState();
+                    }
+                });
+                
+                inputElement.focus();
+                showMessage(`Welcome ${playerName}! Start guessing Indian states!`, "info");
+            }, 500);
+        }
+
+        // Convert turtle coordinates to HTML coordinates
+        function convertCoordinates(x, y) {
+            const mapContainer = document.getElementById('mapContainer');
+            const containerRect = mapContainer.getBoundingClientRect();
+            
+            // In turtle graphics, the center is (0,0)
+            // We need to convert from turtle coordinates to HTML coordinates
+            // Assuming the original turtle window was about 800x600
+            const turtleWidth = 800;
+            const turtleHeight = 600;
+            
+            // Convert turtle coordinates (center origin) to HTML coordinates (top-left origin)
+            const normalizedX = (x + turtleWidth / 2) / turtleWidth;
+            const normalizedY = (turtleHeight / 2 - y) / turtleHeight;
+            
+            // Scale to current container size
+            const htmlX = normalizedX * containerRect.width;
+            const htmlY = normalizedY * containerRect.height;
+            
+            return { x: htmlX, y: htmlY };
+        }
+
+        function guessState() {
+            const input = document.getElementById('stateInput');
+            const guess = input.value.trim();
+            
+            if (!guess) {
+                showMessage("Please enter a state name!", "error");
+                return;
+            }
+
+            // Normalize the guess - handle various formats
+            const normalizedGuess = normalizeStateName(guess);
+            
+            // Check if state exists and hasn't been guessed
+            const matchedState = statesData.find(state => 
+                normalizeStateName(state.name) === normalizedGuess
+            );
+
+            if (matchedState) {
+                if (guessedStates.includes(matchedState.name)) {
+                    showMessage("You already guessed this state!", "info");
+                } else {
+                    guessedStates.push(matchedState.name);
+                    addStateToMap(matchedState, 'guessed');
+                    showMessage(`Correct! ${matchedState.name}`, "success");
+                    updateProgress();
+                    
+                    if (guessedStates.length === statesData.length) {
+                        showMessage("🎉 Congratulations! You've guessed all states! 🎉", "success");
+                    }
+                }
+            } else {
+                showMessage("Incorrect! Try again.", "error");
+                if (debugMode) {
+                    console.log('Available states:', statesData.map(s => s.name));
+                    console.log('Normalized guess:', normalizedGuess);
+                }
+            }
+            
+            input.value = '';
+            input.focus();
+        }
+
+        // Normalize state names for comparison
+        function normalizeStateName(name) {
+            return name.toLowerCase()
+                .replace(/\s+/g, ' ')
+                .replace(/[&]/g, 'and')
+                .trim();
+        }
+
+        function addStateToMap(state, type) {
+            const mapContainer = document.getElementById('mapContainer');
+            const label = document.createElement('div');
+            label.className = `state-label ${type}`;
+            label.textContent = state.name;
+            
+            // Convert coordinates
+            const coords = convertCoordinates(state.x, state.y);
+            
+            // Position the label using converted coordinates
+            label.style.left = `${coords.x}px`;
+            label.style.top = `${coords.y}px`;
+            label.id = `state-${state.name.replace(/\s+/g, '-')}`;
+            
+            if (debugMode) {
+                console.log(`State: ${state.name}, Original: (${state.x}, ${state.y}), Converted: (${coords.x}, ${coords.y})`);
+            }
+            
+            mapContainer.appendChild(label);
+        }
+
+        function showAllStates() {
+            const existingLabels = document.querySelectorAll('.state-label');
+            existingLabels.forEach(label => label.remove());
+            
+            statesData.forEach(state => {
+                const isGuessed = guessedStates.includes(state.name);
+                addStateToMap(state, isGuessed ? 'guessed' : 'unguessed');
+            });
+            
+            showMessage("All states are now visible on the map!", "info");
+        }
+
+        function restartGame() {
+            guessedStates = [];
+            const existingLabels = document.querySelectorAll('.state-label');
+            existingLabels.forEach(label => label.remove());
+            document.getElementById('stateInput').value = '';
+            updateProgress();
+            showMessage("Game restarted! Start guessing states again.", "info");
+            document.getElementById('stateInput').focus();
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.style.display = debugMode ? 'block' : 'none';
+            
+            if (debugMode) {
+                document.getElementById('debugText').textContent = 
+                    `Map dimensions: ${mapDimensions.width}x${mapDimensions.height}, States loaded: ${statesData.length}`;
+            }
+        }
+
+        function updateProgress() {
+            document.getElementById('progress').textContent = `${guessedStates.length}/${statesData.length}`;
+            document.getElementById('score').textContent = guessedStates.length;
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (mapImageLoaded) {
+                const mapImage = document.getElementById('mapImage');
+                const rect = mapImage.getBoundingClientRect();
+                mapDimensions.width = rect.width;
+                mapDimensions.height = rect.height;
+                
+                // Reposition existing labels
+                const existingLabels = document.querySelectorAll('.state-label');
+                existingLabels.forEach(label => {
+                    const stateName = label.textContent;
+                    const state = statesData.find(s => s.name === stateName);
+                    if (state) {
+                        const coords = convertCoordinates(state.x, state.y);
+                        label.style.left = `${coords.x}px`;
+                        label.style.top = `${coords.y}px`;
+                    }
+                });
+            }
+        });
+
+        // Start loading when page loads
+        window.onload = function() {
+            loadCSVData();
+            loadMapImage();
+        };
+    </script>
+</body>
+</html>
